@@ -1,0 +1,10 @@
+SystemCheckError: System check identified some issues:
+
+ERRORS:
+accounts.User.username: (fields.E120) CharFields must define a 'max_length' attribute.
+
+WARNINGS:
+accounts.User: (models.W042) Auto-created primary key used when not defining a primary key type, by default 'django.db.models.AutoField'.
+	HINT: Configure the DEFAULT_AUTO_FIELD setting or the AccountsConfig.default_auto_field attribute to point to a subclass of AutoField, e.g. 'django.db.models.BigAutoField'.
+
+System check identified 2 issues (0 silenced).
