@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.utils import timezone
 from .serializers import *
 from .models import ShareLink
 from rest_framework.views import APIView
@@ -66,7 +67,12 @@ class ShareDownload(APIView):
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer,'w',zipfile.ZIP_DEFLATED) as zip_file:
             for file_obj in files:
-                zip_file.write(file_obj.file.path, arcname=file_obj.original_filename)
+                try:
+                    with file_obj.file.open('rb') as f:
+                        zip_file.writestr(file_obj.original_filename, f.read())
+                except Exception as e:
+                    print(f"Error zipping file {file_obj.id}: {e}")
+                    continue
 
         zip_buffer.seek(0)
         response = HttpResponse(zip_buffer.read(),content_type='application/zip')
@@ -86,9 +92,22 @@ class ShareLinkStatusView(APIView):
     permission_classes = []
     def get(self, request, id):
         share_link = get_object_or_404(ShareLink, id=id)
+        
+        status_code = "valid"
+        if not share_link.is_active:
+            status_code = "inactive"
+        elif share_link.expires_at and share_link.expires_at < timezone.now():
+            status_code = "expired"
+        elif share_link.download_count >= share_link.max_downloads:
+            status_code = "limit_reached"
+        unlocked_links = request.session.get('unlocked_links', [])
+        is_unlocked = str(id) in unlocked_links
+
         return Response({
             "has_password": bool(share_link.password),
-            "is_active": share_link.is_active
+            "is_active": share_link.is_active,
+            "status": status_code,
+            "is_unlocked": is_unlocked
         })
 
 class ShareLinklist(APIView):

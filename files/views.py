@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOwner
 from django.shortcuts import get_object_or_404
+from .pagination import FileCursorPagination
 
 class FileUploadView(APIView):
     permission_classes = [IsAuthenticated]
@@ -25,15 +26,17 @@ class FileUploadView(APIView):
             serializer = FileUploadSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             file_instance = serializer.save(owner=request.user)
-            uploaded_files.insert(0,FileListSerializer(file_instance).data)
+            uploaded_files.insert(0,FileListSerializer(file_instance, context={'request': request}).data)
         return Response({"message":"File uploaded successfully","files":uploaded_files},status=status.HTTP_201_CREATED)
 
 class UserFileListView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self,request):
         files = File.objects.filter(owner=request.user,is_active=True)
-        serializer = FileListSerializer(files,many=True)
-        return Response(serializer.data)
+        pagination = FileCursorPagination()
+        result = pagination.paginate_queryset(files,request,view=self)
+        serializer = FileListSerializer(result,many=True, context={'request': request})
+        return pagination.get_paginated_response(serializer.data)
 
 class FileDeleteView(APIView):
     permission_classes = [IsAuthenticated,IsOwner]
