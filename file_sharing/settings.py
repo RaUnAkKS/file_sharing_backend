@@ -28,6 +28,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-owoby@dk&r0v*9&aj7qd5
 # SECURITY WARNING: don't run with debug turned on in production!
 if os.environ.get('RENDER'):
     DEBUG = False
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SECURE = True
 else:
     DEBUG = True
 
@@ -62,6 +66,7 @@ INSTALLED_APPS = [
     'sharing',
     'rest_framework',
     'corsheaders',
+    'django_apscheduler'
 ]
 
 MIDDLEWARE = [
