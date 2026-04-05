@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render
 from .serializers import *
 from rest_framework.response import Response
@@ -6,6 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated,AllowAny
 
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
